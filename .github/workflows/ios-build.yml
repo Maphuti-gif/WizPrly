@@ -50,11 +50,12 @@ jobs:
             archive \
             CODE_SIGNING_ALLOWED=NO
 
-      - name: Export Unsigned IPA
+      - name: Export & Sign IPA
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
           mkdir -p iosApp/build/ipa/Payload
           cp -R iosApp/build/iosApp.xcarchive/Products/Applications/iosApp.app iosApp/build/ipa/Payload/
+          codesign --force --deep --sign - iosApp/build/ipa/Payload/iosApp.app
           cd iosApp/build/ipa
           zip -r WizPrly.ipa Payload
 
