@@ -49,15 +49,8 @@ jobs:
             -derivedDataPath build/derivedData \
             build
 
-      - name: Zip Simulator App for Appetize.io
-        working-directory: ${{ env.PROJECT_DIR }}
-        run: |
-          mkdir -p iosApp/build/simulator
-          cd iosApp/build/derivedData/Build/Products/Release-iphonesimulator
-          zip -r ../../../../simulator/WizPrly-Simulator.zip iosApp.app
-
       - name: Upload Appetize.io Simulator Build
         uses: actions/upload-artifact@v4
         with:
           name: WizPrly-iOS-Simulator
-          path: ${{ env.PROJECT_DIR }}/iosApp/build/simulator/WizPrly-Simulator.zip
+          path: ${{ env.PROJECT_DIR }}/iosApp/build/derivedData/Build/Products/Release-iphonesimulator/iosApp.app
