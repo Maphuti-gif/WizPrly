@@ -1,4 +1,4 @@
-name: Build iOS IPA
+name: Build iOS App & Simulator
 
 on:
   push:
@@ -38,29 +38,26 @@ jobs:
         working-directory: ${{ env.PROJECT_DIR }}
         run: gradle :shared:assemble
 
-      - name: Build iOS App & Archive
+      - name: Build iOS Simulator App
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
           cd iosApp
           xcodebuild -project iosApp.xcodeproj \
             -scheme iosApp \
-            -sdk iphoneos \
+            -sdk iphonesimulator \
             -configuration Release \
-            -archivePath build/iosApp.xcarchive \
-            archive \
-            CODE_SIGNING_ALLOWED=NO
+            -derivedDataPath build/derivedData \
+            build
 
-      - name: Export & Sign IPA
+      - name: Zip Simulator App for Appetize.io
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
-          mkdir -p iosApp/build/ipa/Payload
-          cp -R iosApp/build/iosApp.xcarchive/Products/Applications/iosApp.app iosApp/build/ipa/Payload/
-          codesign --force --deep --sign - iosApp/build/ipa/Payload/iosApp.app
-          cd iosApp/build/ipa
-          zip -r WizPrly.ipa Payload
+          mkdir -p iosApp/build/simulator
+          cd iosApp/build/derivedData/Build/Products/Release-iphonesimulator
+          zip -r ../../../../simulator/WizPrly-Simulator.zip iosApp.app
 
-      - name: Upload IPA Artifact File
+      - name: Upload Appetize.io Simulator Build
         uses: actions/upload-artifact@v4
         with:
-          name: WizPrly-iOS-IPA
-          path: ${{ env.PROJECT_DIR }}/iosApp/build/ipa/WizPrly.ipa
+          name: WizPrly-iOS-Simulator
+          path: ${{ env.PROJECT_DIR }}/iosApp/build/simulator/WizPrly-Simulator.zip
