@@ -7,6 +7,8 @@ plugins {
 val isMac = System.getProperty("os.name").contains("Mac", ignoreCase = true)
 
 kotlin {
+    applyDefaultHierarchyTemplate()
+
     androidTarget {
         compilations.all {
             kotlinOptions {
