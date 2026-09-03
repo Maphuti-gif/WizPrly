@@ -1,5 +1,6 @@
 package com.maphutimoviousteffo.wizprly.shared.repository
 
+import com.maphutimoviousteffo.wizprly.shared.currentTimeMillis
 import com.maphutimoviousteffo.wizprly.shared.model.SharedChat
 import com.maphutimoviousteffo.wizprly.shared.model.SharedMessage
 import com.maphutimoviousteffo.wizprly.shared.network.OpenAiKmpService
@@ -47,7 +48,7 @@ class InMemorySharedChatRepository(
     }
 
     override suspend fun createChat(name: String, role: String, gender: String, context: String?): String {
-        val newId = (System.currentTimeMillis()).toString()
+        val newId = (currentTimeMillis()).toString()
         val newChat = SharedChat(
             id = newId,
             name = name,
@@ -55,7 +56,7 @@ class InMemorySharedChatRepository(
             aiGender = gender,
             customContext = context,
             lastMessage = "New chat created",
-            lastMessageTime = System.currentTimeMillis()
+            lastMessageTime = currentTimeMillis()
         )
         _chats.value = _chats.value + newChat
         _messagesMap.value = _messagesMap.value + (newId to emptyList())
@@ -64,11 +65,11 @@ class InMemorySharedChatRepository(
 
     override suspend fun sendMessage(chatId: String, content: String, imageUri: String?, audioUri: String?) {
         val userMsg = SharedMessage(
-            id = (System.currentTimeMillis()).toString(),
+            id = (currentTimeMillis()).toString(),
             chatId = chatId,
             senderId = "user",
             content = content,
-            timestamp = System.currentTimeMillis(),
+            timestamp = currentTimeMillis(),
             imageUri = imageUri,
             audioUri = audioUri,
             type = if (audioUri != null) "VOICE_NOTE" else if (imageUri != null) "IMAGE" else "TEXT"
@@ -82,7 +83,7 @@ class InMemorySharedChatRepository(
         }
 
         _chats.value = _chats.value.map {
-            if (it.id == chatId) it.copy(lastMessage = content, lastMessageType = userMsg.type, lastMessageTime = System.currentTimeMillis()) else it
+            if (it.id == chatId) it.copy(lastMessage = content, lastMessageType = userMsg.type, lastMessageTime = currentTimeMillis()) else it
         }
 
         scope.launch {
@@ -96,11 +97,11 @@ class InMemorySharedChatRepository(
             )
 
             val aiMsg = SharedMessage(
-                id = (System.currentTimeMillis() + 1).toString(),
+                id = (currentTimeMillis() + 1).toString(),
                 chatId = chatId,
                 senderId = "ai",
                 content = aiResponseText,
-                timestamp = System.currentTimeMillis(),
+                timestamp = currentTimeMillis(),
                 isAI = true
             )
 
@@ -111,7 +112,7 @@ class InMemorySharedChatRepository(
             }
 
             _chats.value = _chats.value.map {
-                if (it.id == chatId) it.copy(lastMessage = aiResponseText, lastMessageType = "TEXT", lastMessageTime = System.currentTimeMillis()) else it
+                if (it.id == chatId) it.copy(lastMessage = aiResponseText, lastMessageType = "TEXT", lastMessageTime = currentTimeMillis()) else it
             }
         }
     }
