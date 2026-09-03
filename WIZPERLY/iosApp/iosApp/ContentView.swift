@@ -8,6 +8,7 @@ struct ChatItemData: Identifiable, Hashable {
     let isOnline: Bool
     let unreadCount: Int
     let role: String
+    let gender: String
 }
 
 struct MessageData: Identifiable {
@@ -16,12 +17,13 @@ struct MessageData: Identifiable {
     let isUser: Bool
     let time: String
     let isVoiceNote: Bool
+    var reaction: String? = nil
 }
 
 struct ContentView: View {
     @State private var chats: [ChatItemData] = [
-        ChatItemData(id: "1", name: "AI Assistant", lastMessage: "Welcome to WizPrly!", time: "12:00 PM", isOnline: true, unreadCount: 0, role: "assistant"),
-        ChatItemData(id: "2", name: "Travel Buddy", lastMessage: "Where to next?", time: "11:45 AM", isOnline: true, unreadCount: 1, role: "travel_buddy")
+        ChatItemData(id: "1", name: "AI Assistant", lastMessage: "Welcome to WizPrly!", time: "12:00 PM", isOnline: true, unreadCount: 0, role: "assistant", gender: "neutral"),
+        ChatItemData(id: "2", name: "Travel Buddy", lastMessage: "Where to next?", time: "11:45 AM", isOnline: true, unreadCount: 1, role: "travel_buddy", gender: "female")
     ]
 
     @State private var showNewChat = false
@@ -143,6 +145,8 @@ struct ContentView: View {
 struct IOSChatDetailView: View {
     let chat: ChatItemData
     @State private var inputText = ""
+    @State private var isCalling = false
+    @State private var selectedMessageForMenu: MessageData? = nil
     @State private var messages: [MessageData] = [
         MessageData(id: "1", content: "Welcome to WizPrly! How can I help you today?", isUser: false, time: "12:00 PM", isVoiceNote: false)
     ]
@@ -164,6 +168,27 @@ struct IOSChatDetailView: View {
                                         .background(msg.isUser ? Color.purple : Color.white.opacity(0.15))
                                         .foregroundColor(.white)
                                         .cornerRadius(16)
+                                        .contextMenu {
+                                            Button(action: { UIPasteboard.general.string = msg.content }) {
+                                                Label("Copy Text", systemImage: "doc.on.doc")
+                                            }
+                                            Button(action: { inputText = "Replying to: \(msg.content.prefix(15))... " }) {
+                                                Label("Reply", systemImage: "arrow.uturn.backward")
+                                            }
+                                            Button(role: .destructive, action: {
+                                                messages.removeAll { $0.id == msg.id }
+                                            }) {
+                                                Label("Delete", systemImage: "trash")
+                                            }
+                                        }
+
+                                    if let rx = msg.reaction {
+                                        Text(rx)
+                                            .font(.caption)
+                                            .padding(4)
+                                            .background(Color.black.opacity(0.4))
+                                            .cornerRadius(8)
+                                    }
 
                                     Text(msg.time)
                                         .font(.caption2)
@@ -206,6 +231,71 @@ struct IOSChatDetailView: View {
         }
         .navigationTitle(chat.name)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: { isCalling = true }) {
+                    Image(systemName: "phone.fill")
+                        .foregroundColor(.purple)
+                }
+            }
+        }
+        .sheet(isPresented: $isCalling) {
+            IOSVoiceCallView(chatName: chat.name, onEndCall: { isCalling = false })
+        }
+    }
+}
+
+struct IOSVoiceCallView: View {
+    let chatName: String
+    var onEndCall: () -> Void
+    @State private var isMuted = false
+    @State private var isSpeaker = true
+
+    var body: some View {
+        ZStack {
+            Color(red: 11/255, green: 20/255, blue: 27/255).ignoresSafeArea()
+
+            VStack(spacing: 32) {
+                Spacer()
+                Text(chatName)
+                    .font(.largeTitle.bold())
+                    .foregroundColor(.white)
+                Text("In Voice Call...")
+                    .foregroundColor(.gray)
+
+                Spacer()
+
+                HStack(spacing: 40) {
+                    Button(action: { isMuted.toggle() }) {
+                        Image(systemName: isMuted ? "mic.slash.fill" : "mic.fill")
+                            .font(.title)
+                            .foregroundColor(.white)
+                            .padding()
+                            .background(isMuted ? Color.red : Color.white.opacity(0.2))
+                            .clipShape(Circle())
+                    }
+
+                    Button(action: onEndCall) {
+                        Image(systemName: "phone.down.fill")
+                            .font(.title)
+                            .foregroundColor(.white)
+                            .padding(24)
+                            .background(Color.red)
+                            .clipShape(Circle())
+                    }
+
+                    Button(action: { isSpeaker.toggle() }) {
+                        Image(systemName: isSpeaker ? "speaker.wave.3.fill" : "speaker.slash.fill")
+                            .font(.title)
+                            .foregroundColor(.white)
+                            .padding()
+                            .background(isSpeaker ? Color.purple : Color.white.opacity(0.2))
+                            .clipShape(Circle())
+                    }
+                }
+                .padding(.bottom, 48)
+            }
+        }
     }
 }
 
@@ -213,7 +303,19 @@ struct IOSNewChatView: View {
     var onCreated: (ChatItemData) -> Void
     @State private var name = ""
     @State private var selectedRole = "assistant"
+    @State private var selectedGender = "neutral"
     @Environment(\.dismiss) var dismiss
+
+    let roles = [
+        ("assistant", "🤖 AI Assistant"),
+        ("friend", "💛 Friend"),
+        ("therapist", "🧠 Therapist"),
+        ("mentor", "🌟 Mentor"),
+        ("coach", "🔥 Coach"),
+        ("teacher", "📚 Teacher"),
+        ("tech_support", "💻 Tech Support"),
+        ("dating", "❤️ Dating")
+    ]
 
     var body: some View {
         NavigationView {
@@ -224,12 +326,19 @@ struct IOSNewChatView: View {
 
                 Section(header: Text("Personality Role")) {
                     Picker("Role", selection: $selectedRole) {
-                        Text("AI Assistant").tag("assistant")
-                        Text("Friend").tag("friend")
-                        Text("Therapist").tag("therapist")
-                        Text("Mentor").tag("mentor")
-                        Text("Dating").tag("dating")
+                        ForEach(roles, id: \.0) { role, label in
+                            Text(label).tag(role)
+                        }
                     }
+                }
+
+                Section(header: Text("Companion's Gender / Voice")) {
+                    Picker("Gender", selection: $selectedGender) {
+                        Text("⚪ Neutral").tag("neutral")
+                        Text("♂️ Male").tag("male")
+                        Text("♀️ Female").tag("female")
+                    }
+                    .pickerStyle(.segmented)
                 }
             }
             .navigationTitle("New AI Companion")
@@ -237,7 +346,7 @@ struct IOSNewChatView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Create") {
                         if !name.isEmpty {
-                            let chat = ChatItemData(id: UUID().uuidString, name: name, lastMessage: "New chat created", time: "Just now", isOnline: true, unreadCount: 0, role: selectedRole)
+                            let chat = ChatItemData(id: UUID().uuidString, name: name, lastMessage: "New chat created", time: "Just now", isOnline: true, unreadCount: 0, role: selectedRole, gender: selectedGender)
                             onCreated(chat)
                         }
                     }
@@ -265,6 +374,19 @@ struct IOSProfileView: View {
                             Text("WizPrly User").font(.headline)
                             Text("Pro Subscription").font(.subheadline).foregroundColor(.gray)
                         }
+                    }
+                }
+
+                Section(header: Text("WizPrly Pro")) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Upgrade to Pro").font(.headline)
+                            Text("Unlimited companions & elite speed").font(.caption).foregroundColor(.gray)
+                        }
+                        Spacer()
+                        Text("R99.99/mo")
+                            .font(.subheadline.bold())
+                            .foregroundColor(.purple)
                     }
                 }
 
