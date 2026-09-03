@@ -47,6 +47,7 @@ jobs:
             -sdk iphonesimulator \
             -configuration Release \
             -derivedDataPath build/derivedData \
+            IPHONEOS_DEPLOYMENT_TARGET=15.0 \
             build
 
       - name: Upload Appetize.io Simulator Build
