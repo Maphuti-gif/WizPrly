@@ -54,8 +54,9 @@ jobs:
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
           mkdir -p iosApp/build/ipa
+          IPA_PATH="$(pwd)/iosApp/build/ipa/WizPrly.ipa"
           cd iosApp/build/iosApp.xcarchive/Products/Applications
-          zip -r ../../../../ipa/WizPrly.ipa iosApp.app
+          zip -r "$IPA_PATH" iosApp.app
 
       - name: Upload IPA Artifact File
         uses: actions/upload-artifact@v4
