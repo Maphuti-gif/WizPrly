@@ -1,0 +1,25 @@
+# Regression Testing Tasks
+
+- [ ] Build Verification
+    - [ ] Run `gradle_build` to ensure no resource or compilation errors.
+- [ ] Onboarding Verification
+    - [ ] Launch app (onboarding should show if first time).
+    - [ ] Verify logo visibility and alignment.
+    - [ ] Complete onboarding and verify transition to Chat List.
+- [ ] Chat List Verification
+    - [ ] Verify existing chats are loaded.
+    - [ ] Test search functionality.
+    - [ ] Verify logo in top bar.
+- [ ] New Chat Verification
+    - [ ] Create a new chat.
+    - [ ] Verify navigation to Chat Screen.
+- [ ] Chat Screen Verification
+    - [ ] Send a message.
+    - [ ] Verify UI layout (bubbles, input bar).
+- [ ] Profile & Settings Verification
+    - [ ] Change theme color.
+    - [ ] Toggle dark mode.
+    - [ ] Update display name.
+    - [ ] Verify logo in "About" or empty states.
+- [ ] Navigation Verification
+    - [ ] Test back navigation across all screens.

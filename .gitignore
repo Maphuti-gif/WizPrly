@@ -1,0 +1,33 @@
+# Build files
+build/
+**/build/
+app/build/
+shared/build/
+androidApp/build/
+iosApp/build/
+
+# Gradle
+.gradle/
+gradle-wrapper.jar
+gradle-daemon-jvm.properties
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# Local config
+local.properties
+
+# Mac
+.DS_Store
+
+# Kotlin
+*.class
+*.log
+
+# Generated files
+generated/
+*.dex
