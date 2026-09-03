@@ -53,10 +53,10 @@ jobs:
       - name: Export Unsigned IPA
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
-          mkdir -p iosApp/build/ipa
-          IPA_PATH="$(pwd)/iosApp/build/ipa/WizPrly.ipa"
-          cd iosApp/build/iosApp.xcarchive/Products/Applications
-          zip -r "$IPA_PATH" iosApp.app
+          mkdir -p iosApp/build/ipa/Payload
+          cp -R iosApp/build/iosApp.xcarchive/Products/Applications/iosApp.app iosApp/build/ipa/Payload/
+          cd iosApp/build/ipa
+          zip -r WizPrly.ipa Payload
 
       - name: Upload IPA Artifact File
         uses: actions/upload-artifact@v4
