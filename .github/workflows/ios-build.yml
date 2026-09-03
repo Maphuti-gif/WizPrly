@@ -12,6 +12,17 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Locate Project Root
+        run: |
+          PROJ_FILE=$(find . -maxdepth 3 -name "settings.gradle.kts" | head -n 1)
+          if [ -n "$PROJ_FILE" ]; then
+            PROJ_DIR=$(dirname "$PROJ_FILE")
+          else
+            PROJ_DIR="."
+          fi
+          echo "Found project at: $PROJ_DIR"
+          echo "PROJECT_DIR=$PROJ_DIR" >> $GITHUB_ENV
+
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
@@ -22,9 +33,11 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Build KMP Shared Framework
+        working-directory: ${{ env.PROJECT_DIR }}
         run: gradle :shared:assemble
 
       - name: Build iOS App & Archive
+        working-directory: ${{ env.PROJECT_DIR }}
         run: |
           cd iosApp
           xcodebuild -project iosApp.xcodeproj \
@@ -36,13 +49,19 @@ jobs:
             CODE_SIGNING_ALLOWED=NO
 
       - name: Export Unsigned IPA
+        working-directory: ${{ env.PROJECT_DIR }}
         run: |
           mkdir -p iosApp/build/ipa
           cd iosApp/build/iosApp.xcarchive/Products/Applications
           zip -r ../../../../ipa/WizPrly.ipa iosApp.app
 
       - name: Upload IPA Artifact
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          echo "Artifact path: ${{ env.PROJECT_DIR }}/iosApp/build/ipa/WizPrly.ipa"
+
+      - name: Upload IPA Artifact File
         uses: actions/upload-artifact@v4
         with:
           name: WizPrly-iOS-IPA
-          path: iosApp/build/ipa/WizPrly.ipa
+          path: ${{ env.PROJECT_DIR }}/iosApp/build/ipa/WizPrly.ipa
