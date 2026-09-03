@@ -34,13 +34,9 @@ jobs:
         with:
           gradle-version: '8.2'
 
-      - name: Make Gradlew Executable
-        working-directory: ${{ env.PROJECT_DIR }}
-        run: chmod +x gradlew
-
       - name: Build KMP Shared Framework
         working-directory: ${{ env.PROJECT_DIR }}
-        run: ./gradlew :shared:assemble
+        run: gradle :shared:assemble
 
       - name: Build iOS App & Archive
         working-directory: ${{ env.PROJECT_DIR }}
