@@ -29,12 +29,18 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Setup Gradle
+      - name: Setup Gradle 8.2
         uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.2'
+
+      - name: Make Gradlew Executable
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: chmod +x gradlew
 
       - name: Build KMP Shared Framework
         working-directory: ${{ env.PROJECT_DIR }}
-        run: gradle :shared:assemble
+        run: ./gradlew :shared:assemble
 
       - name: Build iOS App & Archive
         working-directory: ${{ env.PROJECT_DIR }}
@@ -54,11 +60,6 @@ jobs:
           mkdir -p iosApp/build/ipa
           cd iosApp/build/iosApp.xcarchive/Products/Applications
           zip -r ../../../../ipa/WizPrly.ipa iosApp.app
-
-      - name: Upload IPA Artifact
-        working-directory: ${{ env.PROJECT_DIR }}
-        run: |
-          echo "Artifact path: ${{ env.PROJECT_DIR }}/iosApp/build/ipa/WizPrly.ipa"
 
       - name: Upload IPA Artifact File
         uses: actions/upload-artifact@v4
